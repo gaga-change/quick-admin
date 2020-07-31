@@ -10,6 +10,14 @@
             >删除</el-link
           >
           <el-divider direction="vertical" />
+          <el-link
+            @click="
+              attrs = scope.row.attrs;
+              attrListDialogVisible = true;
+            "
+            >查看字段列表</el-link
+          >
+          <el-divider direction="vertical" />
           <el-link type="primary" @click="handleModify(scope.row, scope.$index)"
             >编辑</el-link
           >
@@ -21,20 +29,25 @@
       @submit="addRow"
       ref="tableForm"
     />
+    <AttrListDialog :visible.sync="attrListDialogVisible" :attrs="attrs" />
   </div>
 </template>
 
 <script>
 import AddTableFromDialog from "./AddTableFromDialog";
+import AttrListDialog from "./AttrListDialog";
 export default {
-  components: { AddTableFromDialog },
+  components: { AddTableFromDialog, AttrListDialog },
   data() {
     return {
+      attrs: [],
       dialogVisible: false,
+      attrListDialogVisible: false,
       tableData: [
         {
           name: "Demo",
-          title: "例子"
+          title: "例子",
+          attrs: []
         }
       ]
     };
@@ -42,7 +55,11 @@ export default {
   methods: {
     addTable() {
       this.dialogVisible = true;
-      this.$refs["tableForm"].setData({ name: undefined, title: undefined });
+      this.$refs["tableForm"].setData({
+        name: undefined,
+        title: undefined,
+        attrs: []
+      });
     },
     addRow(row) {
       if (row.modify) {
