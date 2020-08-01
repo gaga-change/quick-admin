@@ -1,1 +1,16 @@
-{"test":"G7(@"}
+{
+  "dirPath": "C:\\Users\\11724\\Desktop",
+  "mongoLink": "mongodb://localhost/test",
+  "adminName": "admin",
+  "tableList": [{
+    "name": "user",
+    "title": "用户",
+    "attrs": [{
+      "name": "name",
+      "type": "String",
+      "title": "姓名",
+      "trim": false,
+      "required": false
+    }]
+  }]
+}
