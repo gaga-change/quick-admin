@@ -4,7 +4,7 @@
     <el-table :data="tableData" style="width: 100%">
       <el-table-column prop="name" label="表名" width="180"> </el-table-column>
       <el-table-column prop="title" label="标题"> </el-table-column>
-      <el-table-column label="操作" width="100">
+      <el-table-column label="操作">
         <template slot-scope="scope">
           <el-link @click="handleDel(scope.$index)" type="warning"
             >删除</el-link
@@ -15,7 +15,8 @@
               attrs = scope.row.attrs;
               attrListDialogVisible = true;
             "
-            >查看字段列表</el-link
+            type="primary"
+            >字段列表</el-link
           >
           <el-divider direction="vertical" />
           <el-link type="primary" @click="handleModify(scope.row, scope.$index)"
@@ -43,16 +44,13 @@ export default {
       attrs: [],
       dialogVisible: false,
       attrListDialogVisible: false,
-      tableData: [
-        {
-          name: "Demo",
-          title: "例子",
-          attrs: []
-        }
-      ]
+      tableData: []
     };
   },
   methods: {
+    setData(tableData) {
+      this.tableData = tableData;
+    },
     addTable() {
       this.dialogVisible = true;
       this.$refs["tableForm"].setData({

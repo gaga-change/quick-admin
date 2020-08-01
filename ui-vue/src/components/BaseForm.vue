@@ -77,10 +77,14 @@ export default {
   created() {},
   mounted() {},
   methods: {
-    submitForm() {
+    setData(data) {
+      this.formData = data;
+    },
+    submitForm(cb) {
       this.$refs["elForm"].validate(valid => {
         if (!valid) return;
         // TODO 提交表单
+        cb({ ...this.formData });
       });
     },
     resetForm() {
