@@ -1,20 +1,13 @@
 <template>
   <div>
-    <el-form
-      ref="elForm"
-      :model="formData"
-      :rules="rules"
-      size="medium"
-      label-width="100px"
-    >
+    <el-form ref="elForm" :model="formData" :rules="rules" size="medium" label-width="100px">
       <el-form-item label="项目路径" prop="dirPath">
         <el-input
           v-model="formData.dirPath"
           placeholder="请输入项目路径"
           clearable
           :style="{ width: '100%' }"
-        >
-        </el-input>
+        ></el-input>
       </el-form-item>
       <el-form-item label="MongoDB连接地址" prop="mongoLink">
         <el-input
@@ -30,8 +23,7 @@
           placeholder="请输入管理员名称"
           clearable
           :style="{ width: '100%' }"
-        >
-        </el-input>
+        ></el-input>
       </el-form-item>
     </el-form>
   </div>
@@ -82,9 +74,11 @@ export default {
     },
     submitForm(cb) {
       this.$refs["elForm"].validate(valid => {
-        if (!valid) return;
-        // TODO 提交表单
-        cb({ ...this.formData });
+        if (!valid) {
+          cb("err", { ...this.formData });
+        } else {
+          cb(null, { ...this.formData });
+        }
       });
     },
     resetForm() {

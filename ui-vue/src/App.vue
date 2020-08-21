@@ -1,26 +1,43 @@
 <template>
   <div id="app">
-    <div class="container-ui" v-loading="loading">
-      <h4>基本信息 {{ws && ws.readyState}}</h4>
-      <div v-if="readyState === 0">连接中</div>
-      <div v-if="readyState === 1">已连接</div>
-      <div v-if="readyState === 2">关闭中</div>
-      <div v-if="readyState === 3">未连接</div>
-      <BaseForm ref="baseForm" />
-      <h4>数据结构</h4>
-      <TableList ref="tableList" />
-      <div style="margin-top: 20px; float: right">
-        <el-button type="primary" :disabled="readyState !== 3" @click="connect">连接</el-button>
-        <el-button type="primary" :disabled="readyState !== 1" @click="closeSocket">断开连接</el-button>
-        <el-button type="primary" :disabled="readyState !== 1" @click="handleSave">保存</el-button>
+    <div class="container-ui">
+      <div :style="{visibility: socketAddressDialogVisible ?'hidden': 'visible'}">
+        <el-tabs v-model="activeName" @tab-click="handleClick">
+          <el-tab-pane label="基本信息" name="base">
+            <BaseForm ref="baseForm" />
+          </el-tab-pane>
+          <el-tab-pane label="数据结构" name="tables">
+            <TableList ref="tableList" />
+          </el-tab-pane>
+        </el-tabs>
+        <!-- <div v-if="readyState === 0">连接中</div>
+        <div v-if="readyState === 1">已连接</div>
+        <div v-if="readyState === 2">关闭中</div>
+        <div v-if="readyState === 3">未连接</div>-->
+        <div style="margin-top: 20px; float: right">
+          <!-- <el-button type="primary" :disabled="readyState !== 3" @click="connect">连接</el-button> -->
+          <el-button type="primary" :disabled="readyState !== 1" @click="closeSocket">断开连接</el-button>
+          <el-button
+            type="primary"
+            :loading="saveLoading"
+            :disabled="readyState !== 1"
+            @click="handleSave"
+          >保存</el-button>
+        </div>
       </div>
     </div>
+    <SocketAddressDialog
+      :readyState="readyState"
+      :visible.sync="socketAddressDialogVisible"
+      @connect="handleConnect"
+    />
   </div>
 </template>
 
 <script>
 import BaseForm from "./components/BaseForm";
 import TableList from "./components/TableList";
+import SocketAddressDialog from "./components/SocketAddressDialog";
 const parseMsgToObject = msg => {
   try {
     return JSON.parse(msg);
@@ -33,11 +50,15 @@ export default {
   name: "App",
   components: {
     BaseForm,
-    TableList
+    TableList,
+    SocketAddressDialog
   },
   data() {
     return {
       ws: null,
+      saveLoading: false,
+      // socketAddressDialogVisible: false,
+      activeName: sessionStorage.getItem("tabe_key") || "base",
       readyState: 2,
       connecting: false,
       connected: false
@@ -46,12 +67,26 @@ export default {
   computed: {
     loading() {
       return this.readyState === 0 || this.readyState === 2;
+    },
+    socketAddressDialogVisible() {
+      return this.readyState !== 1;
     }
   },
-  created() {
-    this.connect();
+  watch: {
+    socketAddressDialogVisible(val) {
+      console.log("socketAddressDialogVisible ", val);
+    },
+    readyState(val) {
+      console.log("readyState ", val);
+    }
+  },
+  mounted() {
+    // this.connect();
   },
   methods: {
+    handleClick(tab) {
+      sessionStorage.setItem("tabe_key", tab.name);
+    },
     closeSocket() {
       if (this.ws) {
         this.ws.close();
@@ -62,13 +97,16 @@ export default {
         this.ws.send(JSON.stringify({ event, payload: data }));
       }
     },
-    connect() {
+    handleConnect(url) {
+      this.connect(url);
+    },
+    connect(url) {
       const _up = () => (this.readyState = this.ws.readyState);
       if (this.ws) {
         this.ws.close();
       }
       this.connecting = true;
-      this.ws = new WebSocket(`ws://localhost:9191/ws`);
+      this.ws = new WebSocket(url);
       _up();
       this.ws.onerror = () => {
         this.$message.error("连接失败，检查地址是否正确、项目是否启动！");
@@ -87,6 +125,10 @@ export default {
             this.$refs["baseForm"].setData({ dirPath, mongoLink, adminName });
             this.$refs["tableList"].setData(tableList);
           }
+          if (data.event === "save config success") {
+            this.saveLoading = false;
+            this.$message.success("保存成功！");
+          }
         } else {
           console.error("未正常解析消息");
         }
@@ -100,9 +142,14 @@ export default {
       };
     },
     handleSave() {
-      this.$refs["baseForm"].submitForm(data => {
+      this.$refs["baseForm"].submitForm((err, data) => {
+        if (err) {
+          this.activeName = "base";
+          return;
+        }
         const tableList = this.$refs["tableList"].tableData;
         this.emit("save config", { ...data, tableList });
+        this.saveLoading = true;
       });
     }
   }
