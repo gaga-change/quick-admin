@@ -33,6 +33,8 @@
   </div>
 </template>
 <script>
+const cacheHost = "CACHE_ADDRESS_HOST";
+const cachePort = "CACHE_ADDRESS_PORT";
 export default {
   inheritAttrs: false,
   components: {},
@@ -67,11 +69,22 @@ export default {
   },
   computed: {},
   watch: {},
-  created() {},
+  created() {
+    let port = localStorage.getItem(cachePort);
+    let host = localStorage.getItem(cacheHost);
+    if (port) {
+      this.formData.port = port;
+    }
+    if (host) {
+      this.formData.domain = host;
+    }
+  },
   mounted() {},
   methods: {
     onOpen() {},
     onClose() {
+      localStorage.setItem(cachePort, this.formData.port);
+      localStorage.setItem(cacheHost, this.formData.domain);
       this.$refs["elForm"].resetFields();
     },
     close() {

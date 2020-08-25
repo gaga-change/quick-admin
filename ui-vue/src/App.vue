@@ -21,6 +21,12 @@
             type="primary"
             :loading="saveLoading"
             :disabled="readyState !== 1"
+            @click="handleCreateController"
+          >保存并自动创建api</el-button>
+          <el-button
+            type="primary"
+            :loading="saveLoading"
+            :disabled="readyState !== 1"
             @click="handleSave"
           >保存</el-button>
         </div>
@@ -100,6 +106,17 @@ export default {
     handleConnect(url) {
       this.connect(url);
     },
+    handleCreateController() {
+      this.$refs["baseForm"].submitForm((err, data) => {
+        if (err) {
+          this.activeName = "base";
+          return;
+        }
+        const tableList = this.$refs["tableList"].tableData;
+        this.emit("aoto create controllers", { ...data, tableList });
+        this.saveLoading = true;
+      });
+    },
     connect(url) {
       const _up = () => (this.readyState = this.ws.readyState);
       if (this.ws) {
@@ -122,12 +139,18 @@ export default {
               adminName = "",
               tableList = []
             } = data.payload;
+            console.log(this.$refs["baseForm"])
+            console.log(this.$refs["tableList"])
             this.$refs["baseForm"].setData({ dirPath, mongoLink, adminName });
             this.$refs["tableList"].setData(tableList);
           }
           if (data.event === "save config success") {
             this.saveLoading = false;
             this.$message.success("保存成功！");
+          }
+          if (data.event === "create controllers success") {
+            this.saveLoading = false;
+            this.$message.success("保存并自动创建api成功！");
           }
         } else {
           console.error("未正常解析消息");
